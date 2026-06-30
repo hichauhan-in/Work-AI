@@ -63,7 +63,7 @@ if (-not $NoWeb) {
                 }
             }
             else {
-                Write-Host "Docker Desktop not found — skipping web search." -ForegroundColor DarkYellow
+                Write-Host "Docker Desktop not found - skipping web search." -ForegroundColor DarkYellow
             }
         }
 
@@ -74,11 +74,11 @@ if (-not $NoWeb) {
             Write-Host "SearXNG: running on http://localhost:8888" -ForegroundColor Green
         }
         else {
-            Write-Host "Docker engine not ready — continuing without web search." -ForegroundColor DarkYellow
+            Write-Host "Docker engine not ready - continuing without web search." -ForegroundColor DarkYellow
         }
     }
     else {
-        Write-Host "Docker not installed — continuing without web search." -ForegroundColor DarkYellow
+        Write-Host "Docker not installed - continuing without web search." -ForegroundColor DarkYellow
     }
 }
 
@@ -88,7 +88,7 @@ try {
     Write-Host "Ollama: reachable." -ForegroundColor Green
 }
 catch {
-    Write-Host "Ollama not reachable on 127.0.0.1:11434 — start the Ollama service/app, then retry." -ForegroundColor Red
+    Write-Host "Ollama not reachable on 127.0.0.1:11434 - start the Ollama service/app, then retry." -ForegroundColor Red
 }
 
 # --- 4. Launch ----------------------------------------------------------------
