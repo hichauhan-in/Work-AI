@@ -1,0 +1,7 @@
+# Sample evaluation set (JSONL). One JSON object per line.
+# "expect_source" is a case-insensitive substring matched against retrieved note filenames.
+{"question": "How do I analyze a bugcheck 0x9F crash dump and find the blocking driver?", "expect_source": "windbg"}
+{"question": "What does netsh winsock reset do and when should I use it?", "expect_source": "networking"}
+{"question": "What is the difference between a TCP RST and a FIN?", "expect_source": "networking"}
+{"question": "Which first commands should I run on a Windows crash dump?", "expect_source": "windbg"}
+{"question": "How do I flush the DNS resolver cache on Windows?", "expect_source": "networking"}

@@ -1,0 +1,3 @@
+# PersonalAI — development-only dependencies (run on the dev machine if you like).
+#   pip install -r requirements-dev.txt
+pytest>=8.0.0

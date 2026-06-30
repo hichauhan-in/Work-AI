@@ -1,0 +1,4 @@
+# PersonalAI — OPTIONAL video ingestion (bonus phase).
+# Requires the ffmpeg binary on PATH. Install with:
+#   pip install -r requirements-video.txt
+faster-whisper>=1.0.0

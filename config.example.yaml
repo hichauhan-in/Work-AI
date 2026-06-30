@@ -1,0 +1,58 @@
+# PersonalAI configuration TEMPLATE.
+# On the RUNTIME machine: copy this file to "config.yaml" and edit values.
+# config.yaml is git-ignored so your machine-specific paths never get committed.
+#
+#   Windows : Copy-Item config.example.yaml config.yaml
+#   Linux   : cp config.example.yaml config.yaml
+
+ollama:
+  # Where the Ollama server is listening (can be overridden by the OLLAMA_HOST env var).
+  host: "http://localhost:11434"
+  # Pull these on the runtime machine with `ollama pull <name>` (see INSTRUCTIONS.md).
+  chat_model: "qwen2.5:14b"          # primary text model
+  vision_model: "qwen2.5vl:7b"       # image understanding / OCR fallback (alt: "llava:13b")
+  embed_model: "nomic-embed-text"    # embeddings for retrieval
+  request_timeout: 180               # seconds
+  temperature: 0.2                   # lower = more factual / deterministic
+  num_ctx: 8192                      # context window the model is loaded with
+
+paths:
+  # Relative paths are resolved from the repo root. These directories are git-ignored.
+  data_dir: "data/corpus"            # put your real notes/docs/images here
+  index_dir: "storage/index"         # Chroma vector DB + ingestion manifest live here
+  log_dir: "storage/logs"
+
+chunking:
+  chunk_size_words: 220              # ~ a few paragraphs per chunk
+  chunk_overlap_words: 40            # overlap keeps context across chunk boundaries
+  min_chunk_words: 20               # drop tiny trailing fragments
+
+retrieval:
+  top_k: 6                           # how many note chunks to retrieve
+  score_threshold: 0.35              # cosine similarity below this => notes deemed weak -> web
+  rerank: false                      # reserved for a future reranker
+
+web:
+  enabled: true                      # master switch for web fallback
+  provider: "searxng"                # "searxng" (local, private) or "duckduckgo"
+  searxng_url: "http://localhost:8888"
+  max_results: 5
+  fetch_pages: false                 # true = download result pages for fuller context (slower)
+  fetch_timeout: 15
+
+ocr:
+  enabled: true
+  # Leave empty if `tesseract` is on PATH. On Windows you usually must set the full path:
+  #   tesseract_cmd: "C:/Program Files/Tesseract-OCR/tesseract.exe"
+  tesseract_cmd: ""
+  languages: "eng"                   # e.g. "eng+deu" for multiple
+  min_image_pixels: 10000            # skip icons / tiny images
+  vision_fallback: true              # use the vision model when OCR text is sparse
+
+video:
+  enabled: false                     # bonus phase; requires requirements-video.txt + ffmpeg
+  whisper_model: "base"              # base/small/medium/large-v3
+  frame_interval_seconds: 30         # how often to sample frames for on-screen-text OCR
+
+logging:
+  level: "INFO"                      # DEBUG / INFO / WARNING / ERROR

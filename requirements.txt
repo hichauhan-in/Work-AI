@@ -1,0 +1,24 @@
+# PersonalAI — core runtime dependencies.
+# Install on the RUNTIME machine inside a virtual environment:
+#   pip install -r requirements.txt
+# System binaries are NOT installed by pip — see INSTRUCTIONS.md (Tesseract, optional ffmpeg).
+
+# --- Core ---
+pyyaml>=6.0
+python-dotenv>=1.0.1
+requests>=2.31
+ollama>=0.3.0
+chromadb>=0.5.5
+
+# --- Document parsing (multi-format) ---
+pymupdf>=1.24.0          # PDF + OneNote-exported PDF (text + page rendering for OCR)
+python-docx>=1.1.0       # .docx
+python-pptx>=0.6.23      # .pptx
+openpyxl>=3.1.0          # .xlsx
+beautifulsoup4>=4.12.0   # .html / .htm
+lxml>=5.0.0              # parser backend for bs4
+striprtf>=0.0.26         # .rtf
+
+# --- Images / OCR ---
+pillow>=10.2.0
+pytesseract>=0.3.10      # requires the Tesseract binary on the system (see INSTRUCTIONS.md)

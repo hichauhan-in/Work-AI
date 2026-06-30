@@ -1,0 +1,25 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# --- Local config & secrets (NEVER commit) ---
+config.yaml
+.env
+
+# --- Your data, models, index, logs MUST stay local on the runtime machine ---
+data/corpus/
+storage/
+*.log
+
+# Note: data/sample/ IS committed (tiny demo files used by smoke tests).
+
+# --- OS junk ---
+Thumbs.db
+.DS_Store
+desktop.ini
