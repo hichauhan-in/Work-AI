@@ -6,7 +6,8 @@ screenshots (vision/OCR), and grows as you add more notes — all running on you
 hardware.
 
 - **Plan & design:** [PersonalAI-Plan.md](PersonalAI-Plan.md)
-- **How to run it on the runtime machine:** [INSTRUCTIONS.md](INSTRUCTIONS.md) ← start here
+- **First-time setup (runtime machine):** [INSTRUCTIONS.md](INSTRUCTIONS.md) ← start here
+- **Everyday use:** [RUN-DAILY.md](RUN-DAILY.md)
 
 ## What it does
 
@@ -17,6 +18,7 @@ hardware.
 - Uses a local LLM via **Ollama**; embeddings + a vector store (**ChromaDB**) stay local.
 - **Web fallback** via a self-hosted **SearXNG** (only the search query leaves the machine).
 - **Vision**: attach a screenshot and ask about it.
+- **Chat UI** (Streamlit) plus CLIs — use whichever you prefer.
 
 ## Two-machine workflow
 
@@ -43,13 +45,29 @@ python scripts/query.py "What does netsh winsock reset do?"
 Full, detailed setup (Ollama, models, Tesseract, SearXNG, troubleshooting) is in
 [INSTRUCTIONS.md](INSTRUCTIONS.md).
 
+## Everyday use
+
+After setup, one command starts Docker/SearXNG, checks Ollama, and opens the chat UI:
+
+```powershell
+.\start.ps1                 # web search + chat UI at http://localhost:8501
+.\start.ps1 -NoWeb          # notes-only session
+.\start.ps1 -Cli            # interactive terminal chat
+.\start.ps1 -Check          # environment health check
+```
+
+Or launch the UI directly: `streamlit run app/streamlit_app.py`. See [RUN-DAILY.md](RUN-DAILY.md).
+
 ## Project layout
 
 ```
 src/        core library (config, ingestion, RAG, web, vision wiring)
 scripts/    CLIs: check_env, ingest, query, eval
+app/        Streamlit chat UI
+searxng/    Docker compose + settings for local web search
 tests/      unit + smoke tests (no GPU needed)
 data/sample tiny committed demo notes
+start.ps1   daily launcher (Docker + Ollama check + UI)
 ```
 
 ## Run the tests (dev machine, no GPU needed)

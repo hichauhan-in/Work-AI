@@ -30,6 +30,7 @@ use whichever OS that machine runs.
 15. [Evaluate quality](#15-evaluate-quality)
 16. [Troubleshooting](#16-troubleshooting)
 17. [Dev → runtime sync loop](#17-dev--runtime-sync-loop)
+18. [Daily use (one-command launch)](#18-daily-use-one-command-launch)
 
 ---
 
@@ -407,7 +408,7 @@ answers for a manual quality read.
 | Ollama FAIL but server *is* running; `OLLAMA_HOST` is `0.0.0.0` | `0.0.0.0` is a server bind-all address, not a client target. The app auto-maps it to `127.0.0.1`; if on older code, set `ollama.host: "http://127.0.0.1:11434"` or run `$env:OLLAMA_HOST="127.0.0.1:11434"`. |
 | Model WARN: "not pulled" | Run the `ollama pull <name>` for that model (step 4). |
 | Answers are slow / GPU not used | Run `ollama ps` while querying; PROCESSOR should be GPU. Update AMD Adrenalin drivers. Try a smaller model (`qwen2.5:7b`). On Linux, confirm with `rocm-smi`. |
-| Tesseract WARN / images ignored | Install Tesseract (step 5) and set `ocr.tesseract_cmd` on Windows; or set `ocr.enabled: false`. |
+| Tesseract WARN / images ignored | Tesseract is auto-detected on PATH and at the standard Windows paths; if you installed elsewhere set `ocr.tesseract_cmd` in `config.yaml`, or set `ocr.enabled: false`. |
 | OCR produces garbage on a PDF | The page may be low-res; re-export at higher DPI, or rely on the vision fallback (`ocr.vision_fallback: true`). |
 | Web search returns nothing | Confirm SearXNG JSON is enabled (step 7) and `web.searxng_url` is correct; or switch `web.provider` to `duckduckgo`; or `web.enabled: false`. |
 | "No relevant notes found" for known topics | You may not have ingested yet, or `retrieval.score_threshold` is too high. Run `ingest.py`, lower the threshold, or raise `retrieval.top_k`. |
@@ -441,3 +442,40 @@ When something fails, copy back to the dev side:
 
 That's enough to diagnose and push a fix. Your notes/index never need to leave the runtime
 machine.
+
+---
+
+## 18. Daily use (one-command launch)
+
+Once setup is done, you don't repeat any of the above each day. A launcher script handles
+the routine: it starts Docker Desktop (for web search), ensures the **SearXNG** container is
+up, checks **Ollama**, then opens the **chat UI**.
+
+From the repo root:
+
+```powershell
+.\start.ps1
+```
+
+Then open <http://localhost:8501> (it usually opens automatically). Press `Ctrl+C` to stop.
+
+| Command | What it does |
+|---|---|
+| `.\start.ps1` | Web search + chat UI (the normal way). |
+| `.\start.ps1 -NoWeb` | Skip Docker/SearXNG — notes-only session. |
+| `.\start.ps1 -Cli` | Interactive terminal chat instead of the web UI. |
+| `.\start.ps1 -Check` | Run the environment health check and exit. |
+
+What's automatic vs. manual on a fresh boot:
+
+| Component | Auto-starts? | Notes |
+|---|---|---|
+| Ollama | Yes (Windows service) | Usually already running (shared server). |
+| SearXNG | Yes, once Docker is up | Container uses `restart: unless-stopped`; the launcher starts Docker. |
+| venv + UI | No | `.\start.ps1` handles both. |
+
+A condensed everyday reference lives in [RUN-DAILY.md](RUN-DAILY.md).
+
+> Remember: your index persists on disk, so you only re-ingest when you **add or change**
+> notes (drop files in `data/corpus` then run `python scripts/ingest.py`, or click
+> **Re-scan notes folder** in the UI).
