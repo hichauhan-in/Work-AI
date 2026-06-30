@@ -14,6 +14,19 @@ from .logging_setup import get_logger
 log = get_logger("ollama")
 
 
+def _normalize_host(host: str | None) -> str:
+    """Make an Ollama host safe to *connect* to.
+
+    ``0.0.0.0`` is a server bind-all address, not a valid client target (connecting to it
+    is refused on Windows), so map it to loopback. This is common when ``OLLAMA_HOST`` is
+    set to ``0.0.0.0`` so the server listens on every interface for other machines — the
+    server keeps that setting; only our client connection is redirected to ``127.0.0.1``.
+    """
+    if not host or not host.strip():
+        return "http://127.0.0.1:11434"
+    return host.strip().replace("0.0.0.0", "127.0.0.1")
+
+
 def _content(response: Any) -> str:
     """Extract assistant text from a chat response (dict or typed object)."""
     try:
@@ -44,6 +57,7 @@ class OllamaClient:
     ):
         import ollama  # lazy import
 
+        host = _normalize_host(host)
         self._client = ollama.Client(host=host, timeout=timeout)
         self.host = host
         self.chat_model = chat_model

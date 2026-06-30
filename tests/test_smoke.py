@@ -46,3 +46,14 @@ def test_load_text_file(tmp_path):
     assert len(sections) == 1
     assert "networking" in sections[0].text
     assert sections[0].metadata["filetype"] == "txt"
+
+
+def test_normalize_host_maps_bind_all_to_loopback():
+    from src.ollama_client import _normalize_host
+
+    assert _normalize_host("0.0.0.0") == "127.0.0.1"
+    assert _normalize_host("0.0.0.0:11434") == "127.0.0.1:11434"
+    assert _normalize_host("http://0.0.0.0:11434") == "http://127.0.0.1:11434"
+    assert _normalize_host("http://localhost:11434") == "http://localhost:11434"
+    assert _normalize_host("") == "http://127.0.0.1:11434"
+    assert _normalize_host(None) == "http://127.0.0.1:11434"

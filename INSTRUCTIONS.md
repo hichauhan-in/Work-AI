@@ -386,6 +386,7 @@ answers for a manual quality read.
 | `check_env.py` shows `import X FAIL` | Activate the venv, then `pip install -r requirements.txt`. |
 | "Config file not found" | You skipped step 10 — copy `config.example.yaml` to `config.yaml`. |
 | "Ollama server reachable FAIL" | Ensure Ollama is installed/running. Windows: it runs as a service; Linux: `ollama serve`. Test `http://localhost:11434`. |
+| Ollama FAIL but server *is* running; `OLLAMA_HOST` is `0.0.0.0` | `0.0.0.0` is a server bind-all address, not a client target. The app auto-maps it to `127.0.0.1`; if on older code, set `ollama.host: "http://127.0.0.1:11434"` or run `$env:OLLAMA_HOST="127.0.0.1:11434"`. |
 | Model WARN: "not pulled" | Run the `ollama pull <name>` for that model (step 4). |
 | Answers are slow / GPU not used | Run `ollama ps` while querying; PROCESSOR should be GPU. Update AMD Adrenalin drivers. Try a smaller model (`qwen2.5:7b`). On Linux, confirm with `rocm-smi`. |
 | Tesseract WARN / images ignored | Install Tesseract (step 5) and set `ocr.tesseract_cmd` on Windows; or set `ocr.enabled: false`. |
