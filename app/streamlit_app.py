@@ -13,9 +13,12 @@ Notes-first behaviour, citations, image (vision) questions and a one-click
 """
 from __future__ import annotations
 
+import json
 import pathlib
 import sys
 import tempfile
+from datetime import datetime
+from uuid import uuid4
 
 import streamlit as st
 
@@ -38,6 +41,64 @@ def _save_upload(uploaded) -> str:
     tmp.write(uploaded.getbuffer())
     tmp.close()
     return tmp.name
+
+
+def _conversations_dir(cfg) -> pathlib.Path:
+    base = pathlib.Path(cfg.path("paths.index_dir", "storage/index")).parent
+    directory = base / "conversations"
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+def _list_conversations(cfg) -> list[dict]:
+    items: list[dict] = []
+    for path in _conversations_dir(cfg).glob("*.json"):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        items.append(
+            {
+                "id": path.stem,
+                "title": data.get("title") or "Untitled",
+                "updated_at": data.get("updated_at", ""),
+            }
+        )
+    return sorted(items, key=lambda x: x["updated_at"], reverse=True)
+
+
+def _load_conversation(cfg, conv_id: str) -> list[dict]:
+    path = _conversations_dir(cfg) / f"{conv_id}.json"
+    if not path.exists():
+        return []
+    try:
+        return json.loads(path.read_text(encoding="utf-8")).get("messages", [])
+    except Exception:
+        return []
+
+
+def _save_conversation(cfg, conv_id: str, messages: list[dict]) -> None:
+    clean = [
+        {"role": m["role"], "content": m["content"]}
+        for m in messages
+        if m.get("content")
+    ]
+    if not clean:
+        return
+    title = next((m["content"] for m in clean if m["role"] == "user"), "New chat")
+    title = (title[:48] + "\u2026") if len(title) > 48 else title
+    payload = {
+        "title": title,
+        "updated_at": datetime.now().isoformat(timespec="seconds"),
+        "messages": clean,
+    }
+    (_conversations_dir(cfg) / f"{conv_id}.json").write_text(
+        json.dumps(payload, indent=2), encoding="utf-8"
+    )
+
+
+def _delete_conversation(cfg, conv_id: str) -> None:
+    (_conversations_dir(cfg) / f"{conv_id}.json").unlink(missing_ok=True)
 
 
 def _render_sources(result: dict) -> None:
@@ -66,13 +127,21 @@ def _render_sources(result: dict) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="PersonalAI", page_icon="🧠", layout="centered")
-    st.title("🧠 PersonalAI")
-    st.caption("Your notes, answered locally — with web as a fallback.")
+    st.set_page_config(page_title="PersonalAI", layout="centered")
+    st.markdown(
+        "<p style='text-align:center; font-size:1.45rem; font-weight:600; "
+        "margin:0.4rem 0 1.4rem 0;'>Your notes, answered locally — with web as a fallback.</p>",
+        unsafe_allow_html=True,
+    )
 
     assistant = get_assistant()
     engine = assistant.engine
     cfg = assistant.cfg
+
+    if "conversation_id" not in st.session_state:
+        st.session_state.conversation_id = uuid4().hex
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
     # ---- Sidebar: controls -------------------------------------------------
     with st.sidebar:
@@ -115,9 +184,29 @@ def main() -> None:
                 f"failed {stats['failed']} · +{stats['chunks']} chunks"
             )
 
-        if st.button("🧹 Clear conversation", use_container_width=True):
+        st.divider()
+        st.subheader("Conversations")
+        if st.button("➕ New conversation", use_container_width=True):
+            _save_conversation(cfg, st.session_state.conversation_id, st.session_state.messages)
+            st.session_state.conversation_id = uuid4().hex
             st.session_state.messages = []
             st.rerun()
+
+        for conv in _list_conversations(cfg):
+            is_current = conv["id"] == st.session_state.conversation_id
+            row = st.columns([0.82, 0.18])
+            label = ("• " if is_current else "") + conv["title"]
+            if row[0].button(label, key=f"load_{conv['id']}", use_container_width=True):
+                _save_conversation(cfg, st.session_state.conversation_id, st.session_state.messages)
+                st.session_state.conversation_id = conv["id"]
+                st.session_state.messages = _load_conversation(cfg, conv["id"])
+                st.rerun()
+            if row[1].button("🗑", key=f"del_{conv['id']}", help="Delete this conversation"):
+                _delete_conversation(cfg, conv["id"])
+                if is_current:
+                    st.session_state.conversation_id = uuid4().hex
+                    st.session_state.messages = []
+                st.rerun()
 
     # ---- Map UI controls to engine flags -----------------------------------
     use_web = None
@@ -129,9 +218,6 @@ def main() -> None:
         force_web = True
 
     # ---- Chat history ------------------------------------------------------
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -173,6 +259,7 @@ def main() -> None:
     st.session_state.messages.append(
         {"role": "assistant", "content": answer, "result": result}
     )
+    _save_conversation(cfg, st.session_state.conversation_id, st.session_state.messages)
 
 
 if __name__ == "__main__":
