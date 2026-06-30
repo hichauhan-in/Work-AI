@@ -9,7 +9,7 @@ ollama:
   # Where the Ollama server is listening (can be overridden by the OLLAMA_HOST env var).
   host: "http://localhost:11434"
   # Pull these on the runtime machine with `ollama pull <name>` (see INSTRUCTIONS.md).
-  chat_model: "qwen2.5:14b"          # primary text model
+  chat_model: "qwen2.5:7b"           # primary text model (7B = lighter/faster; 14B = higher quality)
   vision_model: "qwen2.5vl:7b"       # image understanding / OCR fallback (alt: "llava:13b")
   embed_model: "nomic-embed-text"    # embeddings for retrieval
   request_timeout: 180               # seconds
@@ -28,9 +28,15 @@ chunking:
   min_chunk_words: 20               # drop tiny trailing fragments
 
 retrieval:
-  top_k: 6                           # how many note chunks to retrieve
+  top_k: 8                           # how many note chunks to retrieve (more = richer context)
   score_threshold: 0.35              # cosine similarity below this => notes deemed weak -> web
   rerank: false                      # reserved for a future reranker
+  multi_query: true                  # fan a scenario out into several note lookups (associated notes)
+  max_subqueries: 4                  # max extra sub-queries the planner may generate
+
+conversation:
+  history_messages: 8                # prior chat messages kept for context (multi-turn memory)
+  condense_followups: true           # rewrite follow-ups into standalone queries before retrieval
 
 web:
   enabled: true                      # automatic web fallback (an explicit --force-web still works)

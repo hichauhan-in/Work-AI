@@ -145,6 +145,12 @@ def main() -> None:
 
     image_path = _save_upload(uploaded) if uploaded is not None else None
 
+    # Conversation context = everything said so far (before this new turn).
+    history = [
+        {"role": m["role"], "content": m["content"]}
+        for m in st.session_state.messages
+    ]
+
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -153,7 +159,8 @@ def main() -> None:
         with st.spinner("Thinking…"):
             try:
                 result = engine.answer(
-                    prompt, use_web=use_web, image=image_path, force_web=force_web
+                    prompt, use_web=use_web, image=image_path,
+                    force_web=force_web, history=history,
                 )
                 answer = result.get("answer", "").strip()
             except Exception as exc:  # surface errors instead of crashing the UI

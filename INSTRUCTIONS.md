@@ -109,21 +109,24 @@ These match the defaults in `config.example.yaml`. Run on the runtime machine (d
 several GB total):
 
 ```powershell
-ollama pull qwen2.5:14b          # primary chat model (fits your 20 GB VRAM)
+ollama pull qwen2.5:7b           # primary chat model (lighter/faster default)
 ollama pull nomic-embed-text     # embeddings for retrieval
 ollama pull qwen2.5vl:7b         # vision (image understanding / OCR fallback)
 ```
 
 Notes / alternatives:
-- Tighter on VRAM or want speed? Use `qwen2.5:7b` or `llama3.1:8b` and set it as
-  `ollama.chat_model` in `config.yaml`.
-- Want maximum quality and OK with slower replies? Try `qwen2.5:32b` (Q4-sized).
+- **Switching model size** is just a config + pull. For higher quality (slower, ~9 GB in
+  VRAM): `ollama pull qwen2.5:14b` then set `ollama.chat_model: "qwen2.5:14b"` in
+  `config.yaml`. To go back to lighter/faster, set it to `qwen2.5:7b`. After changing, the
+  old model unloads on its own (or run `ollama stop <name>`); the embedding model is
+  unchanged so you do **not** need to re-ingest.
+- Other options: `llama3.1:8b` (chat), or `qwen2.5:32b` for maximum quality if VRAM allows.
 - If `qwen2.5vl:7b` isn't available in your Ollama version, use `llava:13b` instead and set
   `ollama.vision_model: "llava:13b"`.
 
 Quick manual test:
 ```powershell
-ollama run qwen2.5:14b "Say hello in one short sentence."
+ollama run qwen2.5:7b "Say hello in one short sentence."
 ```
 
 > **AMD GPU note:** Ollama ships with the runtime it needs. If it falls back to CPU (slow),

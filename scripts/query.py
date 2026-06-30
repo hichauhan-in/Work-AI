@@ -48,9 +48,12 @@ def _print_result(result: dict) -> None:
     print("(" + ", ".join(flags) + ")")
 
 
-def _run_once(engine, question: str, use_web, image, force_web) -> None:
-    result = engine.answer(question, use_web=use_web, image=image, force_web=force_web)
+def _run_once(engine, question: str, use_web, image, force_web, history=None) -> dict:
+    result = engine.answer(
+        question, use_web=use_web, image=image, force_web=force_web, history=history
+    )
     _print_result(result)
+    return result
 
 
 def main() -> int:
@@ -79,6 +82,7 @@ def main() -> int:
 
     if args.interactive:
         print("PersonalAI interactive mode. Type 'exit' or Ctrl-C to quit.")
+        history: list[dict] = []
         try:
             while True:
                 question = input("\nyou> ").strip()
@@ -86,7 +90,9 @@ def main() -> int:
                     break
                 if not question:
                     continue
-                _run_once(engine, question, use_web, None, args.force_web)
+                result = _run_once(engine, question, use_web, None, args.force_web, history)
+                history.append({"role": "user", "content": question})
+                history.append({"role": "assistant", "content": result["answer"]})
         except (KeyboardInterrupt, EOFError):
             print("\nbye")
         return 0
