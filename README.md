@@ -1,4 +1,4 @@
-# PersonalAI
+# Indexer
 
 A private, local, **notes-first** AI assistant. It answers from your own documents and
 images (RAG), falls back to the web only when your notes are insufficient, can read
