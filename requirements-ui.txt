@@ -1,0 +1,4 @@
+# Optional: local web UI for PersonalAI.
+#   pip install -r requirements-ui.txt
+#   streamlit run app/streamlit_app.py
+streamlit>=1.36

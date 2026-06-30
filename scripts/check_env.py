@@ -103,12 +103,15 @@ def check_tesseract(cfg) -> None:
     try:
         import pytesseract
 
-        if cfg is not None:
-            cmd = cfg.get("ocr.tesseract_cmd", "") or ""
-            if cmd:
-                pytesseract.pytesseract.tesseract_cmd = cmd
+        from src.ingest.ocr import resolve_tesseract_cmd
+
+        configured = (cfg.get("ocr.tesseract_cmd", "") or "") if cfg is not None else ""
+        cmd = resolve_tesseract_cmd(configured)
+        if cmd:
+            pytesseract.pytesseract.tesseract_cmd = cmd
         version = pytesseract.get_tesseract_version()
-        record(OK, "Tesseract OCR binary", f"v{version}")
+        detail = f"v{version}" + (f" — {cmd}" if cmd else " (on PATH)")
+        record(OK, "Tesseract OCR binary", detail)
     except Exception as exc:
         record(WARN, "Tesseract OCR binary", f"not found — image OCR will be skipped ({exc})")
 

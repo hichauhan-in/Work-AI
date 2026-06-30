@@ -42,8 +42,10 @@ web:
 
 ocr:
   enabled: true
-  # Leave empty if `tesseract` is on PATH. On Windows you usually must set the full path:
-  #   tesseract_cmd: "C:/Program Files/Tesseract-OCR/tesseract.exe"
+  # Leave empty to auto-detect: PersonalAI checks PATH and the standard Windows install
+  # locations (e.g. C:/Program Files/Tesseract-OCR/tesseract.exe). Only set this if you
+  # installed Tesseract to a NON-standard folder:
+  #   tesseract_cmd: "D:/Tools/Tesseract-OCR/tesseract.exe"
   tesseract_cmd: ""
   languages: "eng"                   # e.g. "eng+deu" for multiple
   min_image_pixels: 10000            # skip icons / tiny images

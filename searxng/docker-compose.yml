@@ -1,0 +1,21 @@
+# PersonalAI — local SearXNG (private web search) via Docker Desktop.
+#
+# Run from THIS folder (PersonalAi/searxng):
+#   docker compose up -d
+#
+# Then test the JSON API PersonalAI uses:
+#   curl "http://localhost:8888/search?q=test&format=json"
+#
+# Stop / remove:
+#   docker compose down
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    ports:
+      - "8888:8080"          # host 8888 -> matches web.searxng_url in config.yaml
+    volumes:
+      - ./settings.yml:/etc/searxng/settings.yml:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8888/
+    restart: unless-stopped

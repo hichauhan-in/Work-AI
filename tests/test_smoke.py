@@ -57,3 +57,11 @@ def test_normalize_host_maps_bind_all_to_loopback():
     assert _normalize_host("http://localhost:11434") == "http://localhost:11434"
     assert _normalize_host("") == "http://127.0.0.1:11434"
     assert _normalize_host(None) == "http://127.0.0.1:11434"
+
+
+def test_resolve_tesseract_cmd_prefers_configured():
+    from src.ingest.ocr import resolve_tesseract_cmd
+
+    assert resolve_tesseract_cmd("D:/Tools/Tesseract-OCR/tesseract.exe") == (
+        "D:/Tools/Tesseract-OCR/tesseract.exe"
+    )

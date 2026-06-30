@@ -1,0 +1,16 @@
+# PersonalAI SearXNG settings — minimal overrides on top of the image defaults.
+# Reference: https://docs.searxng.org/admin/settings/index.html
+use_default_settings: true
+
+server:
+  # Local-only instance. You MAY replace this with your own random value:
+  #   python -c "import secrets; print(secrets.token_hex(32))"
+  secret_key: "3b9f4e8a2c7d1056e4af9b8c0d2e1f6a7b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e"
+  limiter: false          # disable bot-detection so local JSON API calls aren't blocked
+  image_proxy: true
+
+search:
+  # PersonalAI calls the JSON API, which is DISABLED by default — enable it here.
+  formats:
+    - html
+    - json

@@ -169,37 +169,43 @@ Then install the optional Python deps: `pip install -r requirements-video.txt`.
 
 ## 7. (Optional) Run SearXNG for local web search
 
-This keeps web-search queries on your machine. Easiest via Docker.
+This keeps web-search queries on your machine. A ready-to-run Docker setup ships in the
+repo under `searxng/` (compose file + `settings.yml` with the JSON API already enabled —
+PersonalAI needs JSON output).
 
-1. Install Docker Desktop (Windows) or Docker Engine (Linux).
-2. Run SearXNG with the JSON API enabled (PersonalAI needs JSON output):
+1. Install / start **Docker Desktop** (Windows) or Docker Engine (Linux).
+2. From the repo, bring SearXNG up:
 
-   ```bash
-   docker run -d --name searxng -p 8888:8080 \
-     -e "SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml" \
-     -v "$PWD/searxng:/etc/searxng" \
-     searxng/searxng:latest
+   ```powershell
+   cd searxng
+   docker compose up -d
+   cd ..
    ```
 
-3. Enable the JSON format. Edit `searxng/settings.yml` (created on first run) and ensure:
+3. Test the JSON endpoint PersonalAI uses:
 
-   ```yaml
-   search:
-     formats:
-       - html
-       - json
-   ```
-
-   Then restart: `docker restart searxng`.
-
-4. Test the JSON endpoint:
-   ```bash
+   ```powershell
    curl "http://localhost:8888/search?q=test&format=json"
    ```
 
-In `config.yaml`, keep `web.provider: "searxng"` and `web.searxng_url: "http://localhost:8888"`.
+   You should get JSON back. (If you prefer, open `http://localhost:8888` in a browser.)
 
-> Prefer no setup? Set `web.provider: "duckduckgo"` and
+4. In `config.yaml`, keep `web.provider: "searxng"` and
+   `web.searxng_url: "http://localhost:8888"`. Then `python scripts/check_env.py`
+   should show **SearXNG reachable PASS**.
+
+Manage the container:
+```powershell
+docker compose -f searxng/docker-compose.yml restart   # restart
+docker compose -f searxng/docker-compose.yml down       # stop & remove
+docker logs searxng                                      # view logs
+```
+
+> The bundled `searxng/settings.yml` sets `limiter: false` so local JSON calls aren't
+> blocked, and contains a placeholder `secret_key` you can regenerate with
+> `python -c "import secrets; print(secrets.token_hex(32))"`.
+
+> Prefer no Docker? Set `web.provider: "duckduckgo"` and
 > `pip install duckduckgo_search`. Or set `web.enabled: false` to stay 100% offline.
 
 ---
@@ -346,6 +352,18 @@ python scripts/query.py --interactive
 
 Each answer prints **sources**: which of your notes (with page/slide and a relevance score)
 and any web results were used, plus whether the web was consulted.
+
+### Prefer a chat UI?
+
+Install the optional UI dependency once, then launch the local web app:
+```powershell
+pip install -r requirements-ui.txt
+streamlit run app/streamlit_app.py
+```
+It opens in your browser (default `http://localhost:8501`) and gives you a chat box,
+image upload (vision questions), a web-search mode toggle (Auto / Notes only / Always),
+inline source citations, and a **Re-scan notes folder** button so you can ingest new files
+without touching the terminal. It uses the same engine as the CLI — everything stays local.
 
 ---
 
