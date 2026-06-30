@@ -81,33 +81,62 @@ def _load_pdf(path: Path, meta: dict, ocr) -> list[Section]:
         for page_index in range(doc.page_count):
             page = doc.load_page(page_index)
             text = page.get_text("text").strip()
+            used_ocr = False
 
-            # Screenshot-heavy / OneNote pages often have little selectable text.
-            # Render the whole page and OCR it so image content becomes searchable.
-            if ocr and ocr.enabled and len(text.split()) < 10:
-                ocr_text = _ocr_pdf_page(page, ocr)
+            if ocr and ocr.enabled:
+                if len(text.split()) < 10:
+                    # Scanned / image-only page (non-copyable text): OCR the whole page
+                    # by rendering it to an image first.
+                    ocr_text = _ocr_pdf_page(page, ocr)
+                else:
+                    # Mixed page: real text PLUS pasted screenshots (common in OneNote).
+                    # OCR each embedded image so text inside screenshots is searchable too.
+                    ocr_text = _ocr_pdf_images(doc, page, ocr)
                 if ocr_text:
                     text = (text + "\n" + ocr_text).strip() if text else ocr_text
+                    used_ocr = True
 
             if text:
-                sections.append(
-                    Section(text, {**meta, "page": page_index + 1, "pages": doc.page_count})
-                )
+                page_meta = {**meta, "page": page_index + 1, "pages": doc.page_count}
+                if used_ocr:
+                    page_meta["ocr"] = True
+                sections.append(Section(text, page_meta))
     finally:
         doc.close()
     return sections
 
 
 def _ocr_pdf_page(page, ocr) -> str:
+    """Render an entire PDF page to an image and OCR it (for scanned/image-only pages)."""
     try:
         from PIL import Image  # lazy
 
         pix = page.get_pixmap(dpi=200)
-        image = Image.open(io.BytesIO(pix.tobytes("png")))
-        return ocr.pil_to_text(image)
+        with Image.open(io.BytesIO(pix.tobytes("png"))) as image:
+            return ocr.pil_to_text(image)
     except Exception as exc:  # pragma: no cover
         log.warning("PDF page OCR failed: %s", exc)
         return ""
+
+
+def _ocr_pdf_images(doc, page, ocr) -> str:
+    """OCR images embedded in a PDF page (for pages that mix text and screenshots)."""
+    try:
+        from PIL import Image  # lazy
+    except Exception:  # pragma: no cover
+        return ""
+    texts: list[str] = []
+    for image_info in page.get_images(full=True):
+        xref = image_info[0]
+        try:
+            extracted = doc.extract_image(xref)
+            with Image.open(io.BytesIO(extracted["image"])) as image:
+                piece = ocr.pil_to_text(image)
+            if piece:
+                texts.append(piece)
+        except Exception as exc:  # pragma: no cover
+            log.debug("PDF embedded image OCR skipped: %s", exc)
+    return "\n".join(texts).strip()
 
 
 def _load_docx(path: Path, meta: dict, ocr) -> list[Section]:

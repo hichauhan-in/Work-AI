@@ -33,7 +33,7 @@ retrieval:
   rerank: false                      # reserved for a future reranker
 
 web:
-  enabled: true                      # master switch for web fallback
+  enabled: true                      # automatic web fallback (an explicit --force-web still works)
   provider: "searxng"                # "searxng" (local, private) or "duckduckgo"
   searxng_url: "http://localhost:8888"
   max_results: 5

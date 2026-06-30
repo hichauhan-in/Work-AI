@@ -330,11 +330,14 @@ Attach a screenshot for the vision model to read:
 python scripts/query.py "What does this error indicate and what should I check?" --image "C:/Captures/windbg.png"
 ```
 
-Notes only (no web), or force web on:
+Notes only (no web), or always include the web:
 ```powershell
 python scripts/query.py "Summarise my DNS notes" --no-web
-python scripts/query.py "Latest mitigations for this CVE" --web
+python scripts/query.py "Any newer guidance than my notes on this CVE?" --force-web
 ```
+
+`--force-web` always searches the internet (even when your notes are strong); without it,
+the web is consulted automatically only when your notes are too weak to answer.
 
 Interactive chat loop:
 ```powershell

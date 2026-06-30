@@ -51,6 +51,7 @@ class RagEngine:
         question: str,
         use_web: bool | None = None,
         image: str | Path | None = None,
+        force_web: bool = False,
     ) -> dict[str, Any]:
         query_text = question
 
@@ -69,9 +70,13 @@ class RagEngine:
 
         want_web = self.web_enabled if use_web is None else use_web
         notes_weak = (not notes) or (best_score < self.score_threshold)
+        # Web fires when the user explicitly forces it, OR (auto mode) when the notes
+        # are too weak to answer confidently.
+        should_search = bool(force_web) or (want_web and notes_weak)
         web_results: list[dict] = []
-        if want_web and self.web is not None and notes_weak:
-            log.info("Notes look weak; querying the web for: %s", question)
+        if should_search and self.web is not None:
+            reason = "user requested" if force_web else "notes look weak"
+            log.info("Querying the web (%s) for: %s", reason, question)
             web_results = self.web.search(question)
 
         context, sources = build_context(notes, web_results)

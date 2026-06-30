@@ -21,7 +21,9 @@ class Assistant:
         self.cfg = cfg
         self.llm = OllamaClient.from_config(cfg)
         self.store = VectorStore.from_config(cfg)
-        self.web = WebSearch.from_config(cfg) if cfg.get("web.enabled", True) else None
+        # The web adapter is always constructed so an explicit --force-web works even when
+        # the automatic fallback is disabled. `web.enabled` only governs the auto trigger.
+        self.web = WebSearch.from_config(cfg)
         self.ocr = OCREngine.from_config(cfg, vision_client=self.llm)
         self.engine = RagEngine.from_config(cfg, self.store, self.llm, self.web)
         self.pipeline = IngestionPipeline(self.store, self.llm, self.ocr, cfg)
